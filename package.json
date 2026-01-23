@@ -17,13 +17,18 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@types/hpp": "^0.2.7",
+    "cors": "^2.8.6",
+    "D": "^1.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "hpp": "^0.2.3",
     "http-errors": "^2.0.1",
     "nodemon": "^3.1.11",
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/http-errors": "^2.0.5",
     "@types/node": "^25.0.10",
