@@ -1,0 +1,16 @@
+# Ignore artifacts:
+build
+coverage
+package-lock.json
+package-json.lock
+tsconfig.tsbuildinfo
+.vscode
+.DS_Store
+.env
+dist
+node_modules
+logs
+*.log
+tsconfig.json
+npm-debug.log*
+
