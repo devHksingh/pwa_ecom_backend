@@ -20,7 +20,7 @@ interface IProduct extends mongoose.Document {
   updatedAt: Date;
 }
 
-const productSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema<IProduct>(
   {
     name: {
       type: String,
