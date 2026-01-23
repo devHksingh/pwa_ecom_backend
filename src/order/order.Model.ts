@@ -1,6 +1,31 @@
 import mongoose from "mongoose";
 
-const orderItemSchema = new mongoose.Schema({
+interface IOrderItem {
+  product: mongoose.Types.ObjectId;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface IOrder extends mongoose.Document {
+  user: mongoose.Types.ObjectId;
+  items: IOrderItem[];
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+    phone: string;
+  };
+  paymentMethod: "cod"; // Cash on Delivery
+  totalAmount: number;
+  orderStatus: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  syncedFromOffline: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const orderItemSchema = new mongoose.Schema<IOrderItem>({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
@@ -18,7 +43,7 @@ const orderItemSchema = new mongoose.Schema({
   },
 });
 
-const orderSchema = new mongoose.Schema(
+const orderSchema = new mongoose.Schema<IOrder>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
