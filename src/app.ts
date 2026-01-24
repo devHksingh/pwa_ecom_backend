@@ -7,6 +7,8 @@ import cors from "cors";
 import { config } from "./config/index.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import hpp from "hpp";
+import cartRoutes from "./cart/cart.Route.js";
+import orderRoutes from "./order/order.Route.js";
 
 const app = express();
 
@@ -15,7 +17,7 @@ app.use(
     origin: config.frontendUrl,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+  })
 );
 app.use(hpp());
 app.use(express.json({ limit: "10kb" }));
@@ -30,6 +32,9 @@ app.get("/health", (req: Request, res: Response, next: NextFunction) => {
 });
 
 // routs
+// API Routes
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 
 // global error handler
 app.use(globalErrorHandler);
