@@ -13,7 +13,8 @@ interface IProduct extends mongoose.Document {
     | "other"
     | "beauty"
     | "furniture"
-    | "toys";
+    | "toys"
+    | "shoes";
   stock: number;
   isAvailable: boolean;
   createdAt: Date;
@@ -51,6 +52,7 @@ const productSchema = new mongoose.Schema<IProduct>(
         "beauty",
         "furniture",
         "toys",
+        "shoes",
       ],
       default: "other",
     },

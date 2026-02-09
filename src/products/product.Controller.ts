@@ -66,8 +66,15 @@ const createProduct = async (
     if (user.role !== "admin") {
       return next(createHttpError(403, "Access denied"));
     }
-    const { name, description, price, stock } = req.body;
-    const newProduct = new Product({ name, description, price, stock });
+    const { name, description, price, stock, category, imageUrl } = req.body;
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      stock,
+      category,
+      imageUrl,
+    });
     await newProduct.save();
     res.status(201).json({ product: newProduct, token: userToken });
   } catch (error) {
@@ -106,7 +113,7 @@ const updateProduct = async (
     if (!updatedProduct) {
       return next(createHttpError(404, "Product not found"));
     }
-    res.status(200).json({ product: updatedProduct });
+    res.status(200).json({ product: updatedProduct, token: userToken });
   } catch (error) {
     logger.error("Error updating product:", error);
     return next(createHttpError(500, "Failed to update product"));
