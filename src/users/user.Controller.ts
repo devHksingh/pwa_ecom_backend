@@ -81,12 +81,15 @@ const registerUser = async (
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("-password");
+    console.log(email, password);
+    const user = await User.findOne({ email }).select("+password");
+    console.log(user);
     if (!user) {
       return next(createHttpError(404, "User not found"));
     }
     // compare password
     const isMatch = await user.comparePassword(password);
+    logger.info("Password match status:", isMatch);
     if (!isMatch) {
       return next(createHttpError(401, "Invalid credentials"));
     }
@@ -96,8 +99,17 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       email: user.email,
       role: user.role,
     });
-    res.status(200).json({ message: "Login successful", token });
+    res.cookie("token", `Bearer ${token}`, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in milliseconds
+    });
+    res
+      .status(200)
+      .json({ message: "Login successful", token: `Bearer ${token}` });
   } catch (error) {
+    console.log(error);
     logger.error("Error logging in user:", error);
     return next(createHttpError(500, "Failed to login user"));
   }

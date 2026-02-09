@@ -9,6 +9,9 @@ import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import hpp from "hpp";
 import cartRoutes from "./cart/cart.Route.js";
 import orderRoutes from "./order/order.Route.js";
+import productRoutes from "./products/product.Route.js";
+import userRoutes from "./users/user.Route.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -19,6 +22,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use(cookieParser());
 app.use(hpp());
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -35,6 +39,8 @@ app.get("/health", (req: Request, res: Response, next: NextFunction) => {
 // API Routes
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes);
 
 // global error handler
 app.use(globalErrorHandler);
