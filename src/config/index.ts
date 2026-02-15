@@ -9,6 +9,7 @@ const _config = {
   jwtSecret: process.env.JWT_SECRET,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15d",
+  resendKey: process.env.RESEND_API_KEY || "",
 };
 
 export const config = Object.freeze(_config);
