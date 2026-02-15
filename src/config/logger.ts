@@ -14,7 +14,7 @@ const { combine, prettyPrint, timestamp, json } = format;
  */
 
 //1. Combined /Info log with rotaion file
-const combiedTransport = new DailyRotateFile({
+const combinedTransport = new DailyRotateFile({
   filename: "logs/combined-%DATE%.log",
   datePattern: "YYYY-MM-DD",
   maxSize: "20m", // NEW file will be created when the log file size exceeds 20 mb
@@ -43,7 +43,7 @@ const warnTransport = new DailyRotateFile({
 });
 
 // 4. Failed email log with rotaion file
-const faliedEmailTransport = new DailyRotateFile({
+const failedEmailTransport = new DailyRotateFile({
   filename: "logs/failed-email-%DATE%.log",
   datePattern: "YYYY-MM-DD",
   maxSize: "10m", // NEW file will be created when the log file size exceeds 10 mb
@@ -84,9 +84,9 @@ const logger = winston.createLogger({
       level: "info",
 
       format: combine(timestamp(), json(), prettyPrint()),
-      silent: config.nodeEnv === "production", // Disable console logging in production
+      silent: config.nodeEnv === "test", // Disable console logging in test environment
     }),
-    combiedTransport,
+    combinedTransport,
     errorTransport,
     warnTransport,
   ],
@@ -98,7 +98,7 @@ export const faliedEmailLogger = winston.createLogger({
   defaultMeta: {
     serviceName: "failed-email-service",
   },
-  transports: [faliedEmailTransport],
+  transports: [failedEmailTransport],
 });
 
 export const otpFailedEmailLogger = winston.createLogger({
