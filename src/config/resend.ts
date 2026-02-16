@@ -169,7 +169,7 @@ const sendEmailWithRetry = async (
     };
   }
   // Attempt to send email with retries
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const result = await sendEmail(
       to,
       subject,
