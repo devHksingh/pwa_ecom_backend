@@ -11,14 +11,27 @@ const resend = new Resend(config.resendKey);
 
 // first check is template name is valid
 const verifyTemplateNameIsValid = async (alias: TemplateType) => {
-  const { data, error } = await resend.templates.get(alias);
-  if (error) {
+  try {
+    const { data, error } = await resend.templates.get(alias);
+    if (error) {
+      logger.error(
+        `Error fetching template with name ${alias} from Resend: ${error.message}`
+      );
+      throw new Error(`Template with name ${alias} not found in Resend`);
+    }
+    return data;
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to fetch template";
     logger.error(
-      `Error fetching template with name ${alias} from Resend: ${error.message}`
+      `Error fetching template with name ${alias} from Resend: ${errorMessage}`,
+      {
+        templateName: alias,
+        error: errorMessage,
+      }
     );
     throw new Error(`Template with name ${alias} not found in Resend`);
   }
-  return data;
 };
 
 // const sendWelcomeEmail = async (userEmail: string, userName: string, templateName: TemplateType) => {
@@ -52,11 +65,13 @@ const verifyTemplateNameIsValid = async (alias: TemplateType) => {
  */
 
 const sendEmail = async (
-  to: string,
+  to: string, // user email id
   subject: string,
   templateName: TemplateType,
   variables: Record<string, any>,
-  retries: number = 0
+  retries: number = 0,
+  userId: string = "", // optional user id for logging purposes
+  username: string = "" // optional username for logging purposes
 ): Promise<{ success: boolean; error?: string; messageId?: string }> => {
   try {
     await verifyTemplateNameIsValid(templateName);
@@ -79,6 +94,8 @@ const sendEmail = async (
         variables,
         retries,
         error: error.message,
+        userId,
+        username,
       });
       return { success: false, error: error.message };
     }
@@ -103,6 +120,8 @@ const sendEmail = async (
       variables,
       retries,
       error: errorMessage,
+      userId,
+      username,
     });
     return { success: false, error: errorMessage };
   }
@@ -116,8 +135,9 @@ const sendEmail = async (
  * variables: template variables in the format of { VARIABLE_NAME: value }
  * maxRetries: maximum number of retries in case of failure (default: 3)
  * delayMs: delay between retries in milliseconds (default: 2000ms)
- *
+ *useExponentialBackoff - Use exponential backoff (default: true)
  * The function will attempt to send the email and if it fails, it will retry until the maximum number of retries is reached. The delay between retries will increase exponentially (2^retries * delayMs) to avoid overwhelming the email service.
+ * return Result with success status and attempt count
  */
 
 const sendEmailWithRetry = async (
@@ -126,47 +146,71 @@ const sendEmailWithRetry = async (
   templateName: TemplateType,
   variables: Record<string, any>,
   maxRetries: number = 3, // Number of retry attempts (default: 3)
-  delayMs: number = 2000 // 2s initial delay
+  delayMs: number = 2000, // 2s initial delay
+  useExponentialBackoff: boolean = true,
+  userId: string = "", // optional user id for logging purposes
+  username: string = "" // optional username for logging purposes
 ): Promise<{
   success: boolean;
   error?: string;
   messageId?: string;
   attempts: number;
 }> => {
-  await verifyTemplateNameIsValid(templateName);
-  let retries = 0;
-  while (retries <= maxRetries) {
+  try {
+    // validating template once before any email send attempts.
+    await verifyTemplateNameIsValid(templateName);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Template validation failed";
+    return {
+      success: false,
+      error: errorMessage,
+      attempts: 0,
+    };
+  }
+  // Attempt to send email with retries
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     const result = await sendEmail(
       to,
       subject,
       templateName,
       variables,
-      retries
+      attempt,
+      userId,
+      username
     );
     if (result.success) {
-      return { ...result, attempts: retries };
+      return {
+        success: true,
+        messageId: result.messageId || "",
+        attempts: attempt,
+      };
     }
-    retries++;
-    if (retries <= maxRetries) {
-      const delay = Math.pow(2, retries - 1) * delayMs;
-      logger.info(`Retrying email send to ${to} in ${delay}ms`);
-      logger.warn(`Email send failed, retrying in ${delayMs}ms...`, {
+    // If not the last attempt, wait before retrying
+    if (attempt < maxRetries) {
+      const delay = useExponentialBackoff
+        ? Math.pow(2, attempt - 1) * delayMs // expo :2s,4s,8s
+        : delayMs; // fixed :2s,2s,2s
+      logger.warn(`Email send failed ,retrying in ${delay}ms ...`, {
         to,
         subject,
-        retries,
+        attempt,
         maxRetries,
         templateName,
-        variables,
+        nextDelay: delay,
         error: result.error,
       });
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+  // all attempt are exhausted
   return {
     success: false,
-    error: `All retry attempts failed. Failed to send email after ${maxRetries} retries`,
+    error: `Failed to send email after ${maxRetries} attempts. `,
+    // messageId:"",
     attempts: maxRetries,
   };
 };
 
 export { sendEmail, sendEmailWithRetry };
+export default resend;
