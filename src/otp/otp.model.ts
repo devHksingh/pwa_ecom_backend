@@ -2,7 +2,25 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { randomInt } from "node:crypto";
 
-const otpSchema = new mongoose.Schema(
+interface IOtp {
+  user: mongoose.Types.ObjectId;
+  otpCreatedAt: Date;
+  otpExpiredAt: Date;
+  otp: string;
+  attempts: number;
+  attemptWindowStart: Date;
+  lastRequestTime?: Date;
+  //instance methods
+  compareOtp(userOtp: string): Promise<boolean>;
+  isExpired(): boolean;
+  generateOtpExpTime(): void;
+}
+interface IOtpModel extends mongoose.Model<IOtp> {
+  // Static methods
+  generateOtp(noOfDigit: number): string;
+}
+
+const otpSchema = new mongoose.Schema<IOtp, IOtpModel>(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -88,4 +106,4 @@ otpSchema.methods.isExpired = function (): boolean {
   return new Date() > this.otpExpiredAt;
 };
 
-export default mongoose.model("Otp", otpSchema);
+export default mongoose.model<IOtp, IOtpModel>("Otp", otpSchema);
