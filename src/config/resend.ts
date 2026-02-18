@@ -10,29 +10,29 @@ type TemplateType =
 const resend = new Resend(config.resendKey);
 
 // first check is template name is valid
-const verifyTemplateNameIsValid = async (alias: TemplateType) => {
-  try {
-    const { data, error } = await resend.templates.get(alias);
-    if (error) {
-      logger.error(
-        `Error fetching template with name ${alias} from Resend: ${error.message}`
-      );
-      throw new Error(`Template with name ${alias} not found in Resend`);
-    }
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch template";
-    logger.error(
-      `Error fetching template with name ${alias} from Resend: ${errorMessage}`,
-      {
-        templateName: alias,
-        error: errorMessage,
-      }
-    );
-    throw new Error(`Template with name ${alias} not found in Resend`);
-  }
-};
+// const verifyTemplateNameIsValid = async (alias: TemplateType) => {
+//   try {
+//     const { data, error } = await resend.templates.get(alias);
+//     if (error) {
+//       logger.error(
+//         `Error fetching template with name ${alias} from Resend: ${error.message}`
+//       );
+//       throw new Error(`Template with name ${alias} not found in Resend`);
+//     }
+//     return data;
+//   } catch (error) {
+//     const errorMessage =
+//       error instanceof Error ? error.message : "Failed to fetch template";
+//     logger.error(
+//       `Error fetching template with name ${alias} from Resend: ${errorMessage}`,
+//       {
+//         templateName: alias,
+//         error: errorMessage,
+//       }
+//     );
+//     throw new Error(`Template with name ${alias} not found in Resend`);
+//   }
+// };
 
 // const sendWelcomeEmail = async (userEmail: string, userName: string, templateName: TemplateType) => {
 
@@ -74,7 +74,7 @@ const sendEmail = async (
   username: string = "" // optional username for logging purposes
 ): Promise<{ success: boolean; error?: string; messageId?: string }> => {
   try {
-    await verifyTemplateNameIsValid(templateName);
+    // await verifyTemplateNameIsValid(templateName);
     // Implementation here
     const { data, error } = await resend.emails.send({
       from: config.fromEmail,
@@ -158,7 +158,7 @@ const sendEmailWithRetry = async (
 }> => {
   try {
     // validating template once before any email send attempts.
-    await verifyTemplateNameIsValid(templateName);
+    // await verifyTemplateNameIsValid(templateName);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Template validation failed";
