@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { randomInt } from "node:crypto";
 
+// Interface for OTP document (instance)
 interface IOtp {
   user: mongoose.Types.ObjectId;
   otpCreatedAt: Date;
@@ -10,13 +11,14 @@ interface IOtp {
   attempts: number;
   attemptWindowStart: Date;
   lastRequestTime?: Date;
-  //instance methods
+
+  // Instance methods
   compareOtp(userOtp: string): Promise<boolean>;
   isExpired(): boolean;
-  generateOtpExpTime(): void;
 }
+
+// Interface for OTP model (static)
 interface IOtpModel extends mongoose.Model<IOtp> {
-  // Static methods
   generateOtp(noOfDigit: number): string;
 }
 
@@ -32,7 +34,6 @@ const otpSchema = new mongoose.Schema<IOtp, IOtpModel>(
       default: Date.now,
       required: true,
     },
-
     otpExpiredAt: {
       type: Date,
       required: true,
@@ -57,42 +58,28 @@ const otpSchema = new mongoose.Schema<IOtp, IOtpModel>(
   { timestamps: true }
 );
 
-// hash otp before saveing
+// Pre-save hook: Hash OTP before saving
 otpSchema.pre("save", async function () {
   if (!this.isModified("otp")) {
     return;
   }
   this.otp = await bcrypt.hash(this.otp, 11);
 });
-// method for setting otp expierd time
-otpSchema.methods.generateOtpExpTime = function () {
-  // 30 min from genrate otp
-  const expTime = this.otpCreatedAt.getTime() + 30 * 60 * 1000;
-  this.otpExpiredAt = new Date(expTime);
-};
-// compare otp
-otpSchema.methods.compareOtp = async function (userOtp: string) {
+
+// Instance method: Compare OTP
+otpSchema.methods.compareOtp = async function (
+  userOtp: string
+): Promise<boolean> {
   return await bcrypt.compare(userOtp, this.otp);
 };
 
-/**
- * in db store hash version of otp
- * for user send un hash otp via email
- * genrate 6 digit send to user without hash version via email.
- *
- */
+// Instance method: Check if OTP is expired
+otpSchema.methods.isExpired = function (): boolean {
+  return new Date() > this.otpExpiredAt;
+};
 
-// otpSchema.static.generateOtp = function (noOfDigit: number) {
-//     const otp = []
-//     for (let n = 0; n < noOfDigit; n++) {
-//         const randomDigit = randomInt(0, 10)
-//         otp.push(randomDigit)
-
-//     }
-//     return otp.join("")
-// }
-
-otpSchema.static("generateOtp", function (noOfDigit: number) {
+// Static method: Generate random OTP
+otpSchema.static("generateOtp", function (noOfDigit: number): string {
   const otp = [];
   for (let n = 0; n < noOfDigit; n++) {
     const randomDigit = randomInt(0, 10);
@@ -100,10 +87,5 @@ otpSchema.static("generateOtp", function (noOfDigit: number) {
   }
   return otp.join("");
 });
-
-// method for check is otp exp
-otpSchema.methods.isExpired = function (): boolean {
-  return new Date() > this.otpExpiredAt;
-};
 
 export default mongoose.model<IOtp, IOtpModel>("Otp", otpSchema);
