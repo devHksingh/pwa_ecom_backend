@@ -14,6 +14,7 @@ interface IUser extends mongoose.Document {
     phone?: string;
   };
   role: "user" | "admin";
+  isMailVerified: boolean;
   comparePassword(userPassword: string): Promise<boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -51,7 +52,12 @@ const userSchema = new mongoose.Schema<IUser>(
       enum: ["user", "admin"],
       default: "user",
     },
+    isMailVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
+
   {
     timestamps: true,
   }
