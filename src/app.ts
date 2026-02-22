@@ -12,6 +12,7 @@ import orderRoutes from "./order/order.Route.js";
 import productRoutes from "./products/product.Route.js";
 import userRoutes from "./users/user.Route.js";
 import cookieParser from "cookie-parser";
+import otpRoute from "./otp/otp.route.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/otp", otpRoute);
 
 // global error handler
 app.use(globalErrorHandler);

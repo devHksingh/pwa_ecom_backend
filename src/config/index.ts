@@ -17,6 +17,7 @@ const _config = {
     process.env.PASSWORD_RESET_TEMPLATE_NAME || "password-reset-code",
   welcomeMessageTemplateName:
     process.env.WELCOME_MESSAGE_TEMPLATE_NAME || "welcome-message",
+  companyName: process.env.COMPANY_NAME || "DUMMY_TEST_NAME",
 };
 
 // Validation
