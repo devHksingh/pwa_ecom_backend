@@ -2,9 +2,9 @@ import type { Request, Response, NextFunction } from "express";
 import User from "../users/user.Model.js";
 import Otp from "./otp.model.js";
 import createHttpError from "http-errors";
-import { sendEmailWithRetry } from "../config/resend.js";
+import { sendEmail, sendEmailWithRetry } from "../config/resend.js";
 import { config } from "../config/index.js";
-import { otpFailedEmailLogger } from "../config/logger.js";
+import { faliedEmailLogger, otpFailedEmailLogger } from "../config/logger.js";
 
 // genrate opt
 /**
@@ -296,11 +296,37 @@ const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     // TODO: Mark user as verified in User model
     // await User.updateOne({ _id: user._id }, { isVerified: true });
     await User.updateOne({ _id: user._id }, { isMailVerified: true });
+    const userId = user._id.toString();
+    // WELCOME EMAIL SEND HERE .
+    // TODO: IF FAILS CREATE A WORKER TO SEND WELCOME EMAIL WITH RETRY (3 ATTEMPTS) AND LOG FAILURE IN OTP FAILED EMAIL LOGGER
+    const { success, messageId, error } = await sendEmail(
+      userEmailId,
+      "Welcome on board",
+      "welcome-message",
+      {
+        COMPANY: config.companyName,
+        USER_NAME: user.name,
+      },
+      0,
+      userId,
+      user.name
+    );
+    if (!success) {
+      faliedEmailLogger.error("OTP email failed for new user", {
+        type: "OTP",
+        email: userEmailId,
+        userId: userId,
+        userName: user.name,
+        retryAttempts: 0,
+        failureReason: error,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",
-      userId: user._id,
+      userId: userId,
     });
   } catch (error) {
     next(error);
