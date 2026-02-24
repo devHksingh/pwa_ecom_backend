@@ -28,6 +28,7 @@ const otpVerifyRateLimiter = rateLimit({
 // Routes
 otpRoute.post("/generate", otpGenerateRateLimiter, generateOtp);
 otpRoute.post("/verify", otpVerifyRateLimiter, verifyOtp);
+otpRoute.post("/reset-password", otpGenerateRateLimiter, generateOtp); // Reuse generateOtp for password reset OTP generation
 
 // // In otp.route.ts (temporary test)
 // otpRoute.get("/test-email", async (req, res, next) => {
