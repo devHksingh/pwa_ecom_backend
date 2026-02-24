@@ -15,13 +15,22 @@ import { faliedEmailLogger, otpFailedEmailLogger } from "../config/logger.js";
  * todo: on successfull accountVerification verfication set worker / corn job for send weclome email
  */
 
+type OtpRequestFor = "accountVerification" | "passwordReset";
+
 const generateOtp = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // 1. Validate input
-    const { userEmailId } = req.body;
+    const { userEmailId, requestFor } = req.body;
 
     if (!userEmailId) {
       return next(createHttpError(400, "Email is required"));
+    }
+
+    if (
+      !requestFor ||
+      !["accountVerification", "passwordReset"].includes(requestFor)
+    ) {
+      return next(createHttpError(400, "Invalid requestFor value"));
     }
 
     // 2. Find user
@@ -110,8 +119,12 @@ const generateOtp = async (req: Request, res: Response, next: NextFunction) => {
       // ===== SEND EMAIL WITH RETRY =====
       const { success, messageId, attempts, error } = await sendEmailWithRetry(
         userEmailId,
-        "Account Verification OTP",
-        "email-verification-code-1",
+        requestFor === "accountVerification"
+          ? "Account Verification OTP"
+          : "Password Reset OTP",
+        requestFor === "accountVerification"
+          ? "email-verification-code-1"
+          : "password-reset-code",
         {
           COMPANY: config.companyName,
           VERIFICATION_CODE: newOtp,
@@ -174,8 +187,12 @@ const generateOtp = async (req: Request, res: Response, next: NextFunction) => {
       // ===== SEND EMAIL WITH RETRY =====
       const { success, messageId, attempts, error } = await sendEmailWithRetry(
         userEmailId,
-        "Account Verification OTP",
-        "email-verification-code-1",
+        requestFor === "accountVerification"
+          ? "Account Verification OTP"
+          : "Password Reset OTP",
+        requestFor === "accountVerification"
+          ? "email-verification-code-1"
+          : "password-reset-code",
         {
           COMPANY: config.companyName,
           VERIFICATION_CODE: newOtp,
