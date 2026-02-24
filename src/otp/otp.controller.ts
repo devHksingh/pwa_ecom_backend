@@ -111,7 +111,7 @@ const generateOtp = async (req: Request, res: Response, next: NextFunction) => {
       const { success, messageId, attempts, error } = await sendEmailWithRetry(
         userEmailId,
         "Account Verification OTP",
-        "email-verification-code",
+        "email-verification-code-1",
         {
           COMPANY: config.companyName,
           VERIFICATION_CODE: newOtp,
@@ -175,7 +175,7 @@ const generateOtp = async (req: Request, res: Response, next: NextFunction) => {
       const { success, messageId, attempts, error } = await sendEmailWithRetry(
         userEmailId,
         "Account Verification OTP",
-        "email-verification-code",
+        "email-verification-code-1",
         {
           COMPANY: config.companyName,
           VERIFICATION_CODE: newOtp,
@@ -293,7 +293,7 @@ const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     // OTP verified successfully - delete the document
     await Otp.deleteOne({ _id: otpDoc._id });
 
-    // TODO: Mark user as verified in User model
+    // Update user's mail verification status
     // await User.updateOne({ _id: user._id }, { isVerified: true });
     await User.updateOne({ _id: user._id }, { isMailVerified: true });
     const userId = user._id.toString();
@@ -302,7 +302,7 @@ const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     const { success, messageId, error } = await sendEmail(
       userEmailId,
       "Welcome on board",
-      "welcome-message",
+      "welcome-email",
       {
         COMPANY: config.companyName,
         USER_NAME: user.name,

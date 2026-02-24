@@ -3,9 +3,9 @@ import { config } from "./index.js";
 import logger from "./logger.js";
 
 type TemplateType =
-  | "email-verification-code"
+  | "email-verification-code-1"
   | "password-reset-code"
-  | "welcome-message";
+  | "welcome-email";
 
 const resend = new Resend(config.resendKey);
 
